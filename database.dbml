@@ -1,0 +1,83 @@
+Table users {
+  id        uuid [pk]
+  name      varchar
+  email     varchar [unique]
+  role      varchar [note: 'student | teacher | admin | vikar']
+  class_id  uuid [ref: > classes.id]
+}
+
+Table classes {
+  id                   uuid [pk]
+  name                 varchar
+  year                 int
+  homeroom_teacher_id  uuid [ref: > users.id]
+}
+
+Table subjects {
+  id          uuid [pk]
+  name        varchar
+  description text
+}
+
+Table courses {
+  id          uuid [pk]
+  subject_id  uuid [ref: > subjects.id]
+  teacher_id  uuid [ref: > users.id]
+  class_id    uuid [ref: > classes.id]
+  semester    varchar
+}
+
+Table rooms {
+  id          uuid [pk]
+  name        varchar
+  capacity    int
+  facilities  text
+}
+
+Table time_slots {
+  id          uuid [pk]
+  day_of_week varchar [note: 'monday..friday']
+  start_time  time
+  end_time    time
+}
+
+Table schedule_entries {
+  id           uuid [pk]
+  course_id    uuid [ref: > courses.id]
+  room_id      uuid [ref: > rooms.id]
+  time_slot_id uuid [ref: > time_slots.id]
+  week         int
+}
+
+Table room_bookings {
+  id          uuid [pk]
+  room_id     uuid [ref: > rooms.id]
+  user_id     uuid [ref: > users.id]
+  start_time  timestamp
+  end_time    timestamp
+  purpose     varchar
+}
+
+Table messages {
+  id           uuid [pk]
+  sender_id    uuid [ref: > users.id]
+  recipient_id uuid [ref: > users.id]
+  subject      varchar
+  body         text
+  read_at      timestamp
+}
+
+Table grades {
+  id          uuid [pk]
+  student_id  uuid [ref: > users.id]
+  course_id   uuid [ref: > courses.id]
+  assignment  varchar
+  score       float
+}
+
+Table attendance {
+  id                  uuid [pk]
+  student_id          uuid [ref: > users.id]
+  schedule_entry_id   uuid [ref: > schedule_entries.id]
+  status              varchar [note: 'present | absent | late | excused']
+}
