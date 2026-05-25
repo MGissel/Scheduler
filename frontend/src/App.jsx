@@ -3,6 +3,7 @@ import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import Admin from "./pages/Admin"
 import Messages from "./pages/Messages"
+import Schedule from "./pages/Schedule"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
@@ -22,6 +23,11 @@ function App() {
       <Route path="/messages" element={
         <ProtectedRoute>
           <Messages />
+        </ProtectedRoute>
+      } />
+      <Route path="/schedule" element={
+        <ProtectedRoute>
+          <Schedule />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/login" />} />

@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { getUsers, deleteUser, createUser } from "../api/users"
 import { getClasses, createClass, deleteClass } from "../api/classes"
+import { getTimeslots, createTimeslot, createScheduleEntry, getCourses, getRooms } from "../api/schedule"
 
 export default function Admin() {
   const { user, logout }          = useAuth()
@@ -16,9 +17,18 @@ export default function Admin() {
   const [newUser, setNewUser]     = useState({ name: "", email: "", role: "student", password: "" })
   const [newClass, setNewClass]   = useState({ name: "", year: "" })
 
+  const [timeslots, setTimeslots]   = useState([])
+  const [courses, setCourses]       = useState([])
+  const [rooms, setRooms]           = useState([])
+  const [newSlot, setNewSlot]       = useState({ day_of_week: "monday", start_time: "", end_time: "" })
+  const [newEntry, setNewEntry]     = useState({ course: "", room: "", time_slot: "", week: "" })
+
   useEffect(() => {
     fetchUsers()
     fetchClasses()
+    fetchTimeslots()
+    fetchCourses()
+    fetchRooms()
   }, [])
 
   const fetchUsers = async () => {
@@ -36,6 +46,50 @@ export default function Admin() {
       setClasses(res.data)
     } catch {
       setError("Failed to load classes")
+    }
+  }
+
+  const fetchTimeslots = async () => {
+    try {
+      const res = await getTimeslots()
+      setTimeslots(res.data)
+    } catch {}
+  }
+
+  const fetchCourses = async () => {
+    try {
+      const res = await getCourses()
+      setCourses(res.data)
+    } catch {}
+  }
+
+  const fetchRooms = async () => {
+    try {
+      const res = await getRooms()
+      setRooms(res.data)
+    } catch {}
+  }
+
+  const handleCreateSlot = async (e) => {
+    e.preventDefault()
+    try {
+      await createTimeslot(newSlot)
+      setNewSlot({ day_of_week: "monday", start_time: "", end_time: "" })
+      setSuccess("Timeslot created")
+      fetchTimeslots()
+    } catch {
+      setError("Failed to create timeslot")
+    }
+  }
+
+  const handleCreateEntry = async (e) => {
+    e.preventDefault()
+    try {
+      await createScheduleEntry(newEntry)
+      setNewEntry({ course: "", room: "", time_slot: "", week: "" })
+      setSuccess("Schedule entry created")
+    } catch {
+      setError("Failed to create schedule entry")
     }
   }
 
@@ -107,6 +161,7 @@ export default function Admin() {
         <div style={styles.tabs}>
           <button style={tab === "users"   ? styles.tabActive : styles.tab} onClick={() => setTab("users")}>Users</button>
           <button style={tab === "classes" ? styles.tabActive : styles.tab} onClick={() => setTab("classes")}>Classes</button>
+          <button style={tab === "schedule" ? styles.tabActive : styles.tab} onClick={() => setTab("schedule")}>Schedule</button>
         </div>
 
         {tab === "users" && (
@@ -185,6 +240,66 @@ export default function Admin() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {tab === "schedule" && (
+          <div>
+            <h2 style={styles.sectionTitle}>Create Timeslot</h2>
+            <form onSubmit={handleCreateSlot} style={styles.form}>
+              <select style={styles.input} value={newSlot.day_of_week} onChange={(e) => setNewSlot({ ...newSlot, day_of_week: e.target.value })}>
+                {["monday","tuesday","wednesday","thursday","friday"].map((d) => (
+                  <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+                ))}
+              </select>
+              <input style={styles.input} type="time" value={newSlot.start_time} onChange={(e) => setNewSlot({ ...newSlot, start_time: e.target.value })} required />
+              <input style={styles.input} type="time" value={newSlot.end_time}   onChange={(e) => setNewSlot({ ...newSlot, end_time: e.target.value })}   required />
+              <button style={styles.button} type="submit">Create Timeslot</button>
+            </form>
+
+            <h2 style={styles.sectionTitle}>Timeslots ({timeslots.length})</h2>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Day</th>
+                  <th style={styles.th}>Start</th>
+                  <th style={styles.th}>End</th>
+                </tr>
+              </thead>
+              <tbody>
+                {timeslots.map((t) => (
+                  <tr key={t.id} style={styles.tr}>
+                    <td style={styles.td}>{t.day_of_week}</td>
+                    <td style={styles.td}>{t.start_time}</td>
+                    <td style={styles.td}>{t.end_time}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h2 style={styles.sectionTitle}>Create Schedule Entry</h2>
+            <form onSubmit={handleCreateEntry} style={styles.form}>
+              <select style={styles.input} value={newEntry.course} onChange={(e) => setNewEntry({ ...newEntry, course: e.target.value })} required>
+                <option value="">Select course</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.id}</option>
+                ))}
+              </select>
+              <select style={styles.input} value={newEntry.room} onChange={(e) => setNewEntry({ ...newEntry, room: e.target.value })} required>
+                <option value="">Select room</option>
+                {rooms.map((r) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+              <select style={styles.input} value={newEntry.time_slot} onChange={(e) => setNewEntry({ ...newEntry, time_slot: e.target.value })} required>
+                <option value="">Select timeslot</option>
+                {timeslots.map((t) => (
+                  <option key={t.id} value={t.id}>{t.day_of_week} {t.start_time}–{t.end_time}</option>
+                ))}
+              </select>
+              <input style={styles.input} type="number" placeholder="Week number" value={newEntry.week} onChange={(e) => setNewEntry({ ...newEntry, week: e.target.value })} required />
+              <button style={styles.button} type="submit">Create Entry</button>
+            </form>
           </div>
         )}
       </div>

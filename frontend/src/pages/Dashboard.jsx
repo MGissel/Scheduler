@@ -21,7 +21,7 @@ export default function Dashboard() {
         <h2 style={styles.logo}>Scheduler</h2>
         <nav style={styles.nav}>
           <a style={styles.navItem}>Dashboard</a>
-          <a style={styles.navItem}>Schedule</a>
+          <a style={styles.navItem} onClick={() => navigate("/schedule")}>Schedule</a>
           <a style={styles.navItem}>Courses</a>
           <a style={styles.navItem} onClick={() => navigate("/messages")}>Messages</a>
           {user.role === "admin" && <a style={styles.navItem} onClick={() => navigate("/admin")}>Admin</a>}
